@@ -65,7 +65,7 @@ func (d *Database) Read(db *sql.DB) error {
 	sq := `SELECT schema_name, default_character_set_name, default_collation_name FROM information_schema.schemata WHERE schema_name = ?;`
 	row := db.QueryRow(sq, d.Name)
 	var databaseName, charSetName, collationName string
-	if err := row.Scan(&databaseName, &charSetName, collationName); err != nil {
+	if err := row.Scan(&databaseName, &charSetName, &collationName); err != nil {
 		return err
 	}
 	d.DefaultCharacterSet = charSetName

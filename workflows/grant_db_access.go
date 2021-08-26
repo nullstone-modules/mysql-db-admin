@@ -7,9 +7,9 @@ import (
 	"log"
 )
 
-func GrantDbAccess(db *sql.DB, appDb *sql.DB, user mysql.User, database mysql.Database) error {
+func GrantDbAccess(db *sql.DB, user mysql.User, database mysql.Database) error {
 	log.Printf("Granting user %q db access to %q\n", user.Name, database.Name)
-	return grantAllPrivileges(appDb, user, database)
+	return grantAllPrivileges(db, user, database)
 }
 
 func grantAllPrivileges(db *sql.DB, user mysql.User, database mysql.Database) error {

@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
-	dbmysql "github.com/go-sql-driver/mysql"
 	"github.com/nullstone-modules/mysql-db-admin/mysql"
 	"github.com/nullstone-modules/mysql-db-admin/workflows"
 	"os"
@@ -78,21 +77,10 @@ func HandleRequest(ctx context.Context, event AdminEvent) error {
 		if database.Name == "" {
 			return fmt.Errorf("cannot grant user access to db: database name is required")
 		}
-
-		appDb, err := getAppDb(*connConfig, database.Name)
-		if err != nil {
-			return fmt.Errorf("error connecting to app db %q: %w", database.Name, err)
-		}
-
-		return workflows.GrantDbAccess(db, appDb, user, database)
+		return workflows.GrantDbAccess(db, user, database)
 	default:
 		return fmt.Errorf("unknown event %q", event.Type)
 	}
-}
-
-func getAppDb(connConfig dbmysql.Config, databaseName string) (*sql.DB, error) {
-	connConfig.DBName = databaseName
-	return sql.Open("mysql", connConfig.FormatDSN())
 }
 
 func getConnectionUrl(ctx context.Context) (string, error) {

@@ -6,9 +6,11 @@ import (
 	"github.com/nullstone-modules/mysql-db-admin/workflows"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"log"
 	"os"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestFull(t *testing.T) {
@@ -16,13 +18,15 @@ func TestFull(t *testing.T) {
 		t.Skip("Set ACC=1 to run e2e tests")
 	}
 
-	connUrl := "mysql://mda:mda@localhost:3406/"
+	connUrl := "mysql://root:mda@localhost:3406/"
 	adminConnConfig, err := mysql.DsnFromUrl(connUrl)
 	require.NoError(t, err, "admin conn config")
 	adminConnConfig.MultiStatements = true
 	db, err := sql.Open("mysql", adminConnConfig.FormatDSN())
 	require.NoError(t, err, "error connecting to mysql")
 	defer db.Close()
+	// Wait for mysql to launch in docker
+	waitForDb(t, db,10*time.Second)
 
 	newDatabase := mysql.Database{
 		Name: "test-database",
@@ -41,7 +45,7 @@ func TestFull(t *testing.T) {
 
 	require.NoError(t, workflows.EnsureDatabase(db, newDatabase), "ensure database")
 	require.NoError(t, workflows.EnsureUser(db, newUser), "ensure user")
-	require.NoError(t, workflows.GrantDbAccess(db, appDb, newUser, newDatabase), "grant db access")
+	require.NoError(t, workflows.GrantDbAccess(db, newUser, newDatabase), "grant db access")
 
 	// Attempt to create schema
 	_, err = appDb.Exec("CREATE TABLE todos ( id SERIAL NOT NULL, name varchar(255) );")
@@ -68,4 +72,23 @@ func TestFull(t *testing.T) {
 		results = append(results, name)
 	}
 	assert.Equal(t, []string{"item1", "item2", "item3"}, results)
+}
+
+func waitForDb(t *testing.T, db *sql.DB, timeout time.Duration) {
+	healthy := make(chan bool)
+	go func() {
+		defer close(healthy)
+		for {
+			if err := db.Ping(); err == nil {
+				healthy <- true
+			}
+			log.Println("waiting for db...")
+			time.Sleep(500 * time.Millisecond)
+		}
+	}()
+	select {
+	case <-time.After(timeout):
+		t.Fatalf("timed out waiting for database to launch")
+	case <-healthy:
+	}
 }
