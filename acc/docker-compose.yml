@@ -10,3 +10,4 @@ services:
       MYSQL_ROOT_PASSWORD: mda
       MYSQL_USER: mda
       MYSQL_PASSWORD: mda
+      MYSQL_DATABASE: information_schema

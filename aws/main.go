@@ -37,7 +37,12 @@ func HandleRequest(ctx context.Context, event AdminEvent) error {
 		return err
 	}
 
-	db, err := sql.Open("postgres", connUrl)
+	connConfig, err := mysql.DsnFromUrl(connUrl)
+	if err != nil {
+		return err
+	}
+
+	db, err := sql.Open("mysql", connConfig.FormatDSN())
 	if err != nil {
 		return fmt.Errorf("error connecting to db: %w", err)
 	}
@@ -74,7 +79,7 @@ func HandleRequest(ctx context.Context, event AdminEvent) error {
 			return fmt.Errorf("cannot grant user access to db: database name is required")
 		}
 
-		appDb, err := getAppDb(connUrl, database.Name)
+		appDb, err := getAppDb(*connConfig, database.Name)
 		if err != nil {
 			return fmt.Errorf("error connecting to app db %q: %w", database.Name, err)
 		}
@@ -85,14 +90,9 @@ func HandleRequest(ctx context.Context, event AdminEvent) error {
 	}
 }
 
-func getAppDb(connUrl string, databaseName string) (*sql.DB, error) {
-	dsn, err := dbmysql.ParseDSN(connUrl)
-	if err != nil {
-		return nil, fmt.Errorf("invalid connection url %q: %w", connUrl, err)
-	}
-	dsn.DBName = databaseName
-
-	return sql.Open("mysql", dsn.FormatDSN())
+func getAppDb(connConfig dbmysql.Config, databaseName string) (*sql.DB, error) {
+	connConfig.DBName = databaseName
+	return sql.Open("mysql", connConfig.FormatDSN())
 }
 
 func getConnectionUrl(ctx context.Context) (string, error) {

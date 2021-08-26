@@ -62,11 +62,14 @@ func (d Database) Exists(db *sql.DB) (bool, error) {
 }
 
 func (d *Database) Read(db *sql.DB) error {
-	row := db.QueryRow(fmt.Sprintf(`SHOW CREATE DATABASE %s`, QuoteIdentifier(d.Name)))
-	var databaseName, createSql string
-	if err := row.Scan(&databaseName, &createSql); err != nil {
+	sq := `SELECT schema_name, default_character_set_name, default_collation_name FROM information_schema.schemata WHERE schema_name = ?;`
+	row := db.QueryRow(sq, d.Name)
+	var databaseName, charSetName, collationName string
+	if err := row.Scan(&databaseName, &charSetName, collationName); err != nil {
 		return err
 	}
+	d.DefaultCharacterSet = charSetName
+	d.DefaultCollation = collationName
 	return nil
 }
 

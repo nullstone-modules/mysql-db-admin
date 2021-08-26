@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
 	"log"
@@ -34,7 +35,10 @@ func (u User) Create(db *sql.DB) error {
 }
 
 func (u User) generateCreateSql() string {
-	panic("not implemented")
+	b := bytes.NewBufferString("CREATE USER ")
+	fmt.Fprint(b, QuoteLiteral(u.Name), "@'%'")
+	fmt.Fprintf(b, " IDENTIFIED BY '%s'", u.Password)
+	return b.String()
 }
 
 func (u User) Exists(db *sql.DB) (bool, error) {
@@ -49,5 +53,11 @@ func (u User) Exists(db *sql.DB) (bool, error) {
 }
 
 func (u User) Read(db *sql.DB) error {
-	panic("not implemented")
+	sq := `select User, Host from mysql.user where User = ?;`
+	row := db.QueryRow(sq, u.Name)
+	var user, host string
+	if err := row.Scan(&user, &host); err != nil {
+		return err
+	}
+	return nil
 }

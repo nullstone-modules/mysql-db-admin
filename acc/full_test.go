@@ -2,11 +2,12 @@ package acc
 
 import (
 	"database/sql"
-	dbmysql "github.com/go-sql-driver/mysql"
 	"github.com/nullstone-modules/mysql-db-admin/mysql"
 	"github.com/nullstone-modules/mysql-db-admin/workflows"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -15,9 +16,10 @@ func TestFull(t *testing.T) {
 		t.Skip("Set ACC=1 to run e2e tests")
 	}
 
-	connUrl := "mysql://mda:mda@localhost:3406/admin"
-	adminConnConfig, err := dbmysql.ParseDSN(connUrl)
+	connUrl := "mysql://mda:mda@localhost:3406/"
+	adminConnConfig, err := mysql.DsnFromUrl(connUrl)
 	require.NoError(t, err, "admin conn config")
+	adminConnConfig.MultiStatements = true
 	db, err := sql.Open("mysql", adminConnConfig.FormatDSN())
 	require.NoError(t, err, "error connecting to mysql")
 	defer db.Close()
@@ -42,9 +44,28 @@ func TestFull(t *testing.T) {
 	require.NoError(t, workflows.GrantDbAccess(db, appDb, newUser, newDatabase), "grant db access")
 
 	// Attempt to create schema
+	_, err = appDb.Exec("CREATE TABLE todos ( id SERIAL NOT NULL, name varchar(255) );")
+	require.NoError(t, err, "create table")
 
-	// Attempt to insert rows into collection
+	// Attempt to insert rows into todos table
+	sq := strings.Join([]string{
+		`INSERT INTO todos (name) VALUES ('item1');`,
+		`INSERT INTO todos (name) VALUES ('item2');`,
+		`INSERT INTO todos (name) VALUES ('item3');`,
+	}, "")
+	_, err = appDb.Exec(sq)
+	require.NoError(t, err, "insert todos")
 
 	// Attempt to retrieve them
-
+	results := make([]string, 0)
+	rows, err := appDb.Query(`SELECT * FROM todos`)
+	require.NoError(t, err, "query todos")
+	defer rows.Close()
+	for rows.Next() {
+		var id int
+		var name string
+		require.NoError(t, rows.Scan(&id, &name), "scan record")
+		results = append(results, name)
+	}
+	assert.Equal(t, []string{"item1", "item2", "item3"}, results)
 }
