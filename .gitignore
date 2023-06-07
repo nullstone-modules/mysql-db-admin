@@ -19,3 +19,4 @@ vendor/
 
 aws-module.tgz
 aws/tf/files/mysql-db-admin
+gcp/tf/files/mysql-db-admin

@@ -37,3 +37,8 @@ jobs:
         working-directory: aws/tf
         run: |
           nullstone modules publish --include=files/mysql-db-admin.zip --version=${{ env.MODULE_VERSION }}
+      - id: publish-gcp
+        name: Publish GCP
+        working-directory: gcp/tf
+        run: |
+          nullstone modules publish --include=files/mysql-db-admin.zip --version=${{ env.MODULE_VERSION }}

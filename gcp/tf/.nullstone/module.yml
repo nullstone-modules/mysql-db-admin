@@ -1,0 +1,13 @@
+org_name: nullstone
+name: gcp-mysql-db-admin
+friendly_name: GCP Cloud Function for MySQL Admin
+description: Creates a Google Cloud Function to administer a mysql database without the use of SSH Tunnel or VPN
+category: block
+subcategory: ""
+provider_types:
+    - gcp
+platform: mysql
+subplatform: ""
+type: ""
+appCategories: []
+is_public: true
