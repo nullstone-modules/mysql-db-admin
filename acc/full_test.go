@@ -17,7 +17,7 @@ func TestFull(t *testing.T) {
 		t.Skip("Set ACC=1 to run e2e tests")
 	}
 
-	connUrl := "mysql://root:mda@localhost:3406/"
+	connUrl := "mysql://root:mda@localhost:3406/?multiStatements=true"
 	store := mysql.NewStore(connUrl)
 
 	adminConnConfig, err := mysql.DsnFromUrl(connUrl)

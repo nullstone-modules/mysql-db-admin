@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -22,6 +23,10 @@ func DsnFromUrl(connUrl string) (*mysql.Config, error) {
 	config.Net = "tcp"
 	config.Addr = u.Host
 	for k, arr := range u.Query() {
+		if k == "multiStatements" {
+			config.MultiStatements, _ = strconv.ParseBool(arr[0])
+			continue
+		}
 		for _, v := range arr {
 			config.Params[k] = v
 		}
