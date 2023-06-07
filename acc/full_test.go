@@ -3,7 +3,6 @@ package acc
 import (
 	"database/sql"
 	"github.com/nullstone-modules/mysql-db-admin/mysql"
-	"github.com/nullstone-modules/mysql-db-admin/workflows"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"log"
@@ -19,6 +18,8 @@ func TestFull(t *testing.T) {
 	}
 
 	connUrl := "mysql://root:mda@localhost:3406/"
+	store := mysql.NewStore(connUrl)
+
 	adminConnConfig, err := mysql.DsnFromUrl(connUrl)
 	require.NoError(t, err, "admin conn config")
 	adminConnConfig.MultiStatements = true
@@ -26,7 +27,7 @@ func TestFull(t *testing.T) {
 	require.NoError(t, err, "error connecting to mysql")
 	defer db.Close()
 	// Wait for mysql to launch in docker
-	waitForDb(t, db,10*time.Second)
+	waitForDb(t, db, 10*time.Second)
 
 	newDatabase := mysql.Database{
 		Name: "test-database",
@@ -36,16 +37,16 @@ func TestFull(t *testing.T) {
 		Password: "test-password",
 	}
 
-	appConnConfig := *adminConnConfig
-	appConnConfig.User = newUser.Name
-	appConnConfig.Passwd = newUser.Password
-	appConnConfig.DBName = newDatabase.Name
-	appDb, err := sql.Open("mysql", appConnConfig.FormatDSN())
-	defer appDb.Close()
+	_, err = store.Databases.Create(newDatabase)
+	require.NoError(t, err, "create database")
+	_, err = store.Users.Create(newUser)
+	require.NoError(t, err, "create user")
+	_, err = store.DbPrivileges.Create(mysql.DbPrivilege{Username: newUser.Name, Database: newDatabase.Name})
+	require.NoError(t, err, "grant db access")
 
-	require.NoError(t, workflows.EnsureDatabase(db, newDatabase), "ensure database")
-	require.NoError(t, workflows.EnsureUser(db, newUser), "ensure user")
-	require.NoError(t, workflows.GrantDbAccess(db, newUser, newDatabase), "grant db access")
+	appDb, err := store.OpenDatabase(newDatabase.Name)
+	require.NoError(t, err)
+	defer appDb.Close()
 
 	// Attempt to create schema
 	_, err = appDb.Exec("CREATE TABLE todos ( id SERIAL NOT NULL, name varchar(255) );")
