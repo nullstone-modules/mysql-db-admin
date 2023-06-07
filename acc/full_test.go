@@ -27,7 +27,7 @@ func TestFull(t *testing.T) {
 	require.NoError(t, err, "error connecting to mysql")
 	defer db.Close()
 	// Wait for mysql to launch in docker
-	waitForDb(t, db, 10*time.Second)
+	waitForDb(t, db, 20*time.Second)
 
 	newDatabase := mysql.Database{
 		Name: "test-database",

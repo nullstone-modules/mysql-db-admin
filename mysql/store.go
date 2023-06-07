@@ -23,6 +23,7 @@ func NewStore(connUrl string) *Store {
 	store := &Store{connUrl: connUrl, connsByDbName: map[string]*sql.DB{}}
 	store.Databases = &Databases{DbOpener: store}
 	store.Users = &Users{DbOpener: store}
+	store.DbPrivileges = &DbPrivileges{DbOpener: store}
 	return store
 }
 
