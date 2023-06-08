@@ -1,6 +1,6 @@
 resource "google_cloudfunctions2_function" "function" {
   name        = var.name
-  location    = local.location
+  location    = local.region
   description = "${var.name} MySQL DB Admin"
   labels      = var.labels
 
