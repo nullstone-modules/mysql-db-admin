@@ -8,7 +8,6 @@ resource "google_storage_bucket" "binaries" {
   location      = local.storage_location
   labels        = var.labels
   force_destroy = true
-  storage_class = "MULTI_REGIONAL"
 }
 
 resource "google_storage_bucket_object" "binary" {
