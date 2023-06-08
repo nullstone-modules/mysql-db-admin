@@ -1,4 +1,13 @@
-package main
+package mysql_db_admin
+
+// This is the entrypoint for a GCP Cloud Function
+// A Cloud Function (2nd gen) *must* be built using GCP Cloud Build
+// This requires us to do the following:
+//   - Package all source code (including vendor) in the zip file
+//   - main.go *must* be at the root of the zip file
+//   - package name in main.go must match module name defined in go.mod (cannot be `package main`)
+//
+// This entrypoint does not run code; it only registers a trigger that is used by the runtime upon execution
 
 import (
 	_ "github.com/GoogleCloudPlatform/functions-framework-go/funcframework"

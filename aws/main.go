@@ -1,5 +1,11 @@
 package main
 
+// This is the entrypoint for an AWS Lambda
+// This is built locally and the binary is packaged in the zip file
+// We use the tool `build-lambda-zip` to ensure that the zip file has a binary that is marked executable
+//
+// This entrypoint starts on the first request and starts a listener through which the Lambda runtime communicates
+
 import (
 	"context"
 	"fmt"
