@@ -1,12 +1,11 @@
 locals {
-  region_prefix    = lower(substr(local.region, 0, 2))
-  location         = local.region_prefix == "us" ? "us" : (local.region_prefix == "eu" ? "eu" : "asia")
+  storage_location = local.region_prefix == "us" ? "US" : (local.region_prefix == "eu" ? "EU" : "ASIA")
   package_filename = "${path.module}/files/mysql-db-admin.zip"
 }
 
 resource "google_storage_bucket" "binaries" {
   name          = "${var.name}-binaries"
-  location      = local.location
+  location      = local.storage_location
   labels        = var.labels
   force_destroy = true
   storage_class = "MULTI_REGIONAL"
