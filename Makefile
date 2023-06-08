@@ -8,11 +8,11 @@ tools:
 build:
 	mkdir -p ./aws/tf/files
 	GOOS=linux GOARCH=amd64 go build -o ./aws/tf/files/mysql-db-admin ./aws/
-	GOOS=linux GOARCH=amd64 go build -o ./gcp/tf/files/mysql-db-admin ./gcp/
+	rm -rf ./gcp/tf/files/ && mkdir -p ./gcp/tf/files/
+	zip -r gcp/tf/files/mysql-db-admin.zip go.mod go.sum api/ mysql/ vendor/
 
 package: tools
 	cd ./aws/tf && build-lambda-zip --output files/mysql-db-admin.zip files/mysql-db-admin
-	cd ./gcp/tf && build-lambda-zip --output files/mysql-db-admin.zip files/mysql-db-admin
 
 acc: acc-up acc-run acc-down
 
