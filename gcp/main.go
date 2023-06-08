@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "github.com/GoogleCloudPlatform/functions-framework-go/funcframework"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/nullstone-modules/mysql-db-admin/api"
 	"github.com/nullstone-modules/mysql-db-admin/mysql"

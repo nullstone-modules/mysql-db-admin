@@ -15,6 +15,7 @@ require (
 )
 
 require (
+	cloud.google.com/go/functions v1.13.0 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.3.3 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.4.1 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.2.1 // indirect
