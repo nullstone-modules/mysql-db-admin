@@ -1,5 +1,6 @@
 locals {
-  location         = startswith(local.region, "us") ? "us" : (startswith(local.region, "eu") ? "eu" : "asia")
+  region_prefix    = lower(substr(local.region, 0, 2))
+  location         = local.region_prefix == "us" ? "us" : (local.region_prefix == "eu" ? "eu" : "asia")
   package_filename = "${path.module}/files/mysql-db-admin.zip"
 }
 
