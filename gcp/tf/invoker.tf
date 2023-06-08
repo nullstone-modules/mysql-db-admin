@@ -14,6 +14,6 @@ resource "google_service_account_key" "invoker" {
 
 resource "google_project_iam_member" "invoker_basic" {
   project = local.project_id
-  role    = "roles/cloudfunctions.invoker"
+  role    = "roles/run.invoker"
   member  = "serviceAccount:${google_service_account.invoker.email}"
 }
