@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"bytes"
+	"database/sql"
 	"fmt"
 	"github.com/nullstone-io/go-rest-api"
 	"log"
@@ -53,6 +54,9 @@ func (u *Users) Read(key string) (*User, error) {
 	row := db.QueryRow(sq, key)
 	var user, host string
 	if err := row.Scan(&user, &host); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &User{Name: key}, nil

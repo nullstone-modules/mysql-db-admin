@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"bytes"
+	"database/sql"
 	"fmt"
 	"github.com/nullstone-io/go-rest-api"
 	"log"
@@ -56,6 +57,9 @@ func (d *Databases) Read(key string) (*Database, error) {
 	row := db.QueryRow(sq, obj.Name)
 	var databaseName, charSetName, collationName string
 	if err := row.Scan(&databaseName, &charSetName, &collationName); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 	obj.DefaultCharacterSet = charSetName
