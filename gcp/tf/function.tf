@@ -17,6 +17,7 @@ resource "google_cloudfunctions2_function" "function" {
   }
 
   service_config {
+    service_account_email            = google_service_account.executor.email
     available_cpu                    = "4"
     available_memory                 = "4Gi"
     timeout_seconds                  = 20
