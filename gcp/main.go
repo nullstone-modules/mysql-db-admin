@@ -10,6 +10,7 @@ package mysql_db_admin
 // This entrypoint does not run code; it only registers a trigger that is used by the runtime upon execution
 
 import (
+	"fmt"
 	_ "github.com/GoogleCloudPlatform/functions-framework-go/funcframework"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/nullstone-modules/mysql-db-admin/api"
@@ -22,6 +23,7 @@ var (
 )
 
 func init() {
+	fmt.Println("Initializing mysql-db-admin...")
 	store := mysql.NewStore(os.Getenv(dbConnUrlEnvVar))
 	router := api.CreateRouter(store)
 	functions.HTTP("mysql-db-admin", router.ServeHTTP)

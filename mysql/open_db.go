@@ -18,6 +18,7 @@ func OpenDatabase(connUrl string, databaseName string) (*sql.DB, error) {
 		return nil, fmt.Errorf("error opening database: %w", err)
 	}
 
+	fmt.Printf("OpenDatabase addr=%s, db=%s, user=%s, length(password)=%d\n", dsn.Addr, dsn.DBName, dsn.User, len(dsn.Passwd))
 	dsn.DBName = databaseName
 
 	db, err := sql.Open("mysql", dsn.FormatDSN())
