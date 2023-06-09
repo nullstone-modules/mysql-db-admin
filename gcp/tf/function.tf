@@ -18,8 +18,8 @@ resource "google_cloudfunctions2_function" "function" {
 
   service_config {
     service_account_email            = google_service_account.executor.email
-    available_cpu                    = "4"
-    available_memory                 = "4Gi"
+    available_cpu                    = "2"
+    available_memory                 = "512Mi"
     timeout_seconds                  = 20
     max_instance_count               = 100
     max_instance_request_concurrency = 50
