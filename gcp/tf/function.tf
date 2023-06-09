@@ -8,6 +8,10 @@ resource "google_cloudfunctions2_function" "function" {
     runtime     = "go120"
     entry_point = "mysql-db-admin"
 
+    environment_variables = {
+      "SOURCE_HASH" : google_storage_bucket_object.binary.detect_md5hash
+    }
+
     source {
       storage_source {
         bucket = google_storage_bucket.binaries.name
