@@ -4,6 +4,10 @@ on:
     tags:
       - 'v*'
 
+env:
+  NULLSTONE_ORG: nullstone
+  NULLSTONE_API_KEY: ${{ secrets.NULLSTONE_API_KEY }}
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -36,9 +40,13 @@ jobs:
         name: Publish AWS
         working-directory: aws/tf
         run: |
-          nullstone modules publish --include=files/mysql-db-admin.zip --version=${{ env.MODULE_VERSION }}
+          nullstone modules publish \
+            --include=files/mysql-db-admin.zip \
+              --version=${{ env.MODULE_VERSION }}
       - id: publish-gcp
         name: Publish GCP
         working-directory: gcp/tf
         run: |
-          nullstone modules publish --include=files/mysql-db-admin.zip --version=${{ env.MODULE_VERSION }}
+          nullstone modules publish \
+            --include=files/mysql-db-admin.zip \
+            --version=${{ env.MODULE_VERSION }}
