@@ -1,6 +1,4 @@
 resource "google_cloudfunctions2_function" "function" {
-  depends_on = [google_secret_manager_secret_version.db_admin_mysql]
-
   name        = var.name
   location    = local.region
   description = "${var.name} MySQL DB Admin"
@@ -38,7 +36,7 @@ resource "google_cloudfunctions2_function" "function" {
       key        = "DB_CONN_URL"
       project_id = local.project_id
       secret     = google_secret_manager_secret.db_admin_mysql.secret_id
-      version    = "latest"
+      version    = google_secret_manager_secret_version.db_admin_mysql.version
     }
   }
 }
