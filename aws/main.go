@@ -1,16 +1,20 @@
 package main
 
+// This is the entrypoint for an AWS Lambda
+// This is built locally and the binary is packaged in the zip file
+// We use the tool `build-lambda-zip` to ensure that the zip file has a binary that is marked executable
+//
+// This entrypoint starts on the first request and starts a listener through which the Lambda runtime communicates
+
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	"github.com/nullstone-modules/mysql-db-admin/aws/secrets"
 	"github.com/nullstone-modules/mysql-db-admin/mysql"
-	"github.com/nullstone-modules/mysql-db-admin/workflows"
+	"log"
 	"os"
+	"time"
 )
 
 const (
@@ -27,75 +31,54 @@ type AdminEvent struct {
 }
 
 func main() {
-	lambda.Start(HandleRequest)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	dbConnurl, err := secrets.GetString(ctx, os.Getenv(dbConnUrlSecretIdEnvVar))
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	store := mysql.NewStore(dbConnurl)
+	defer store.Close()
+
+	lambda.Start(HandleRequest(store))
 }
 
-func HandleRequest(ctx context.Context, event AdminEvent) error {
-	connUrl, err := getConnectionUrl(ctx)
-	if err != nil {
-		return err
-	}
-
-	connConfig, err := mysql.DsnFromUrl(connUrl)
-	if err != nil {
-		return err
-	}
-
-	db, err := sql.Open("mysql", connConfig.FormatDSN())
-	if err != nil {
-		return fmt.Errorf("error connecting to db: %w", err)
-	}
-	defer db.Close()
-
-	switch event.Type {
-	case eventTypeCreateDatabase:
-		newDatabase := mysql.Database{}
-		newDatabase.Name, _ = event.Metadata["databaseName"]
-		if newDatabase.Name == "" {
-			return fmt.Errorf("cannot create database: databaseName is required")
+func HandleRequest(store *mysql.Store) func(ctx context.Context, event AdminEvent) error {
+	return func(ctx context.Context, event AdminEvent) error {
+		switch event.Type {
+		case eventTypeCreateDatabase:
+			databaseName, _ := event.Metadata["databaseName"]
+			if databaseName == "" {
+				return fmt.Errorf("cannot create database: databaseName is required")
+			}
+			_, err := store.Databases.Create(mysql.Database{Name: databaseName, UseExisting: true})
+			return err
+		case eventTypeCreateUser:
+			username, _ := event.Metadata["username"]
+			password, _ := event.Metadata["password"]
+			if username == "" {
+				return fmt.Errorf("cannot create user: username is required")
+			}
+			if password == "" {
+				return fmt.Errorf("cannot create user: password is required")
+			}
+			_, err := store.Users.Create(mysql.User{Name: username, Password: password, UseExisting: true})
+			return err
+		case eventTypeCreateDbAccess:
+			username, _ := event.Metadata["username"]
+			if username == "" {
+				return fmt.Errorf("cannot grant user access to db: username is required")
+			}
+			database, _ := event.Metadata["databaseName"]
+			if database == "" {
+				return fmt.Errorf("cannot grant user access to db: database name is required")
+			}
+			_, err := store.DbPrivileges.Create(mysql.DbPrivilege{Username: username, Database: database})
+			return err
+		default:
+			return fmt.Errorf("unknown event %q", event.Type)
 		}
-		return workflows.EnsureDatabase(db, newDatabase)
-	case eventTypeCreateUser:
-		newUser := mysql.User{}
-		newUser.Name, _ = event.Metadata["username"]
-		if newUser.Name == "" {
-			return fmt.Errorf("cannot create user: username is required")
-		}
-		newUser.Password, _ = event.Metadata["password"]
-		if newUser.Password == "" {
-			return fmt.Errorf("cannot create user: password is required")
-		}
-		return workflows.EnsureUser(db, newUser)
-	case eventTypeCreateDbAccess:
-		user := mysql.User{}
-		user.Name, _ = event.Metadata["username"]
-		if user.Name == "" {
-			return fmt.Errorf("cannot grant user access to db: username is required")
-		}
-		database := mysql.Database{}
-		database.Name, _ = event.Metadata["databaseName"]
-		if database.Name == "" {
-			return fmt.Errorf("cannot grant user access to db: database name is required")
-		}
-		return workflows.GrantDbAccess(db, user, database)
-	default:
-		return fmt.Errorf("unknown event %q", event.Type)
 	}
-}
-
-func getConnectionUrl(ctx context.Context) (string, error) {
-	awsConfig, err := config.LoadDefaultConfig(context.TODO())
-	if err != nil {
-		return "", fmt.Errorf("error accessing aws: %w", err)
-	}
-	sm := secretsmanager.NewFromConfig(awsConfig)
-	secretId := os.Getenv(dbConnUrlSecretIdEnvVar)
-	out, err := sm.GetSecretValue(ctx, &secretsmanager.GetSecretValueInput{SecretId: aws.String(secretId)})
-	if err != nil {
-		return "", fmt.Errorf("error accessing secret: %w", err)
-	}
-	if out.SecretString == nil {
-		return "", nil
-	}
-	return *out.SecretString, nil
 }
