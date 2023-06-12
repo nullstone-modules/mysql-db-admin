@@ -1,4 +1,6 @@
 resource "google_cloudfunctions2_function" "function" {
+  depends_on = [google_secret_manager_secret_version.db_admin_mysql]
+
   name        = var.name
   location    = local.region
   description = "${var.name} MySQL DB Admin"
