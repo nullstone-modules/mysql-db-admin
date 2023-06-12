@@ -17,7 +17,7 @@ package: tools
 	# Package gcp module (source code instead of binary)
 	# For GCP, main.go *must* be in the root of the zip file
 	cp gcp/main.go main.go && \
-		zip -r gcp/tf/files/mysql-db-admin.zip go.mod go.sum main.go ./api/ ./postgresql/ ./vendor/; \
+		zip -r gcp/tf/files/mysql-db-admin.zip go.mod go.sum main.go ./api/ ./mysql/ ./vendor/; \
 		rm main.go
 
 acc: acc-up acc-run acc-down
