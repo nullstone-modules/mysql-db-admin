@@ -39,6 +39,7 @@ variable "network" {
   description = "Network configuration"
   type = object({
     vpc_id : string
+    mysql_security_group_id : string
     security_group_ids : list(string)
     subnet_ids = list(string)
   })
