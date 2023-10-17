@@ -43,8 +43,9 @@ variable "network" {
     subnet_ids = list(string)
   })
   default = {
-    vpc_id             = ""
-    security_group_ids = []
-    subnet_ids         = []
+    vpc_id                  = ""
+    mysql_security_group_id = ""
+    security_group_ids      = []
+    subnet_ids              = []
   }
 }
