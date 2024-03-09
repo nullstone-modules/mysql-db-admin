@@ -7,7 +7,7 @@ tools:
 
 build:
 	mkdir -p ./aws/tf/files
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o -tags lambda.norpc ./aws/tf/files/bootstrap ./aws/
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags lambda.norpc -o ./aws/tf/files/bootstrap ./aws/
 	# Run build on gcp to ensure a successful build, we discard it
 	GOOS=linux GOARCH=amd64 go build -o ./gcp/tf/files/mysql-db-admin ./gcp/; rm -f ./gcp/tf/files/mysql-db-admin
 
